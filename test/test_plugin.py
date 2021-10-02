@@ -3,7 +3,7 @@ import pytest
 from pylsp.workspace import Workspace, Document
 from pylsp.config.config import Config
 from pylsp import uris
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from pylsp_mypy import plugin
 
 DOC_URI = __file__
@@ -20,6 +20,7 @@ TEST_LINE_WITHOUT_LINE = "test_plugin.py: " 'error: "Request" has no attribute "
 def workspace(tmpdir):
     """Return a workspace."""
     ws = Workspace(uris.from_fs_path(str(tmpdir)), Mock())
+    ws._root_path = "C:"
     ws._config = Config(ws.root_uri, {}, 0, {})
     return ws
 
@@ -120,3 +121,12 @@ def foo():
     doc2 = Document(DOC_URI, ws2, DOC_SOURCE)
     diags = plugin.pylsp_lint(ws2._config, ws2, doc2, is_saved=False)
     assert len(diags) == 0
+
+
+def test_default_config_file(tmpdir):
+    config = FakeConfig()
+    with patch("pylsp_mypy.plugin.findConfigFile", return_value=None), patch(
+        "pathlib.Path.exists", return_value=True
+    ):
+        plugin.pylsp_settings(config)
+        assert plugin.mypyConfigFileMap.get(config._root_path) == "~/.config/mypy/config"

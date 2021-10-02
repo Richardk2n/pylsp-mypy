@@ -278,8 +278,10 @@ def init(workspace: str) -> Dict[str, str]:
 
     mypyConfigFile = findConfigFile(workspace, ["mypy.ini", ".mypy.ini"])
     mypyConfigFileMap[workspace] = mypyConfigFile
+    if mypyConfigFileMap[workspace] is None:
+        mypyConfigFileMap[workspace] = defaultMypyConfigFile()
 
-    log.info("mypyConfigFile = %s configuration = %s", mypyConfigFile, configuration)
+    log.info("mypyConfigFile = %s configuration = %s", mypyConfigFileMap[workspace], configuration)
     return configuration
 
 
@@ -316,6 +318,30 @@ def findConfigFile(path: str, names: List[str]) -> Optional[str]:
                         )
                     )
                 return str(file)
+
+    return None
+
+
+def defaultMypyConfigFile() -> Optional[str]:
+    """
+    Find the mypy default config file path defined in the mypy document below.
+
+    Reference: https://mypy.readthedocs.io/en/stable/config_file.html
+
+    Returns
+    -------
+    Optional[str]
+        The path where the default config file has been found or None if no matching file has been found.
+
+    """
+    # A list of user default config file path
+    user_default_config = ["~/.config/mypy/config", "~/.mypy.ini"]
+    if os.environ.get("XDG_CONFIG_HOME"):
+        user_default_config.insert(0, os.path.join(os.environ["XDG_CONFIG_HOME"], "mypy/config"))
+
+    for config_file in user_default_config:
+        if Path(config_file).expanduser().exists():
+            return config_file
 
     return None
 
