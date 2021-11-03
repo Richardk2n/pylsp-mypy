@@ -16,7 +16,7 @@ from mypy import api as mypy_api
 from pylsp import hookimpl
 from pylsp.workspace import Document, Workspace
 from pylsp.config.config import Config
-from typing import Optional, Dict, Any, IO, List
+from typing import Optional, Dict, Any, IO, List, Generator
 import atexit
 import collections
 import warnings
@@ -93,6 +93,15 @@ def parse_line(line: str, document: Optional[Document] = None) -> Optional[Dict[
 
         return diag
     return None
+
+
+def apply_overrides(args: List[str], overrides: List[Any]) -> Generator[str, None, None]:
+    """Replace or combine overrides with command line args."""
+    for v in overrides:
+        if v is True:
+            yield from iter(args)
+            continue
+        yield v
 
 
 @hookimpl
@@ -186,8 +195,12 @@ def pylsp_lint(
     if settings.get("strict", False):
         args.append("--strict")
 
+    overrides = settings.get("overrides")
+
     if not dmypy:
         args.extend(["--incremental", "--follow-imports", "silent"])
+        if overrides:
+            args = list(apply_overrides(args, overrides))
 
         log.info("executing mypy args = %s", args)
         report, errors, _ = mypy_api.run(args)
@@ -203,7 +216,7 @@ def pylsp_lint(
             mypy_api.run_dmypy(["kill"])
 
         # run to use existing daemon or restart if required
-        args = ["run", "--"] + args
+        args = ["run", "--"] + (list(apply_overrides(args, overrides)) if overrides else args)
         log.info("dmypy run args = %s", args)
         report, errors, _ = mypy_api.run_dmypy(args)
 

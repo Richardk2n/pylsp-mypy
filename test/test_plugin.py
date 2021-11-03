@@ -126,3 +126,85 @@ def foo():
     doc2 = Document(DOC_URI, ws2, DOC_SOURCE)
     diags = plugin.pylsp_lint(ws2._config, ws2, doc2, is_saved=False)
     assert len(diags) == 0
+
+
+def test_apply_overrides():
+    assert list(plugin.apply_overrides(["1", "2"], [])) == []
+    assert list(plugin.apply_overrides(["1", "2"], ["a"])) == ["a"]
+    assert list(plugin.apply_overrides(["1", "2"], ["a", True])) == ["a", "1", "2"]
+    assert list(plugin.apply_overrides(["1", "2"], [True, "a"])) == ["1", "2", "a"]
+    assert list(plugin.apply_overrides(["1"], ["a", True, "b"])) == ["a", "1", "b"]
+
+
+def test_option_overrides(tmpdir, diag_mp, workspace):
+    import sys
+    from textwrap import dedent
+
+    sentinel = tmpdir / "ran"
+
+    source = dedent(
+        """\
+        #!{}
+        import os, sys, pathlib
+        pathlib.Path({!r}).touch()
+        os.execv({!r}, sys.argv)
+        """
+    ).format(sys.executable, str(sentinel), sys.executable)
+
+    wrapper = tmpdir / "bin/wrapper"
+    wrapper.write(source, ensure=True)
+    wrapper.chmod(0o700)
+
+    overrides = ["--python-executable", wrapper.strpath, True]
+    diag_mp.setattr(
+        FakeConfig,
+        "plugin_settings",
+        lambda _, p: {"overrides": overrides} if p == "pylsp_mypy" else {},
+    )
+
+    assert not sentinel.exists()
+
+    diags = plugin.pylsp_lint(
+        config=FakeConfig(),
+        workspace=workspace,
+        document=Document(DOC_URI, workspace, DOC_TYPE_ERR),
+        is_saved=False,
+    )
+    assert len(diags) == 1
+    assert sentinel.exists()
+
+
+def test_option_overrides_dmypy(diag_mp, workspace):
+    from unittest.mock import Mock
+
+    overrides = ["--python-executable", "/tmp/fake", True]
+    diag_mp.setattr(
+        FakeConfig,
+        "plugin_settings",
+        lambda _, p: {
+            "overrides": overrides,
+            "dmypy": True,
+            "live_mode": False,
+        }
+        if p == "pylsp_mypy"
+        else {},
+    )
+
+    m = Mock(wraps=lambda a: (None, "", 0) if a == ["status"] else ("", "", None))
+    diag_mp.setattr(plugin.mypy_api, "run_dmypy", m)
+
+    plugin.pylsp_lint(
+        config=FakeConfig(),
+        workspace=workspace,
+        document=Document(DOC_URI, workspace, DOC_TYPE_ERR),
+        is_saved=False,
+    )
+    expected = [
+        "run",
+        "--",
+        "--python-executable",
+        "/tmp/fake",
+        "--show-column-numbers",
+        __file__,
+    ]
+    m.assert_called_with(expected)
