@@ -17,6 +17,12 @@ TEST_LINE_WITHOUT_LINE = "test_plugin.py: " 'error: "Request" has no attribute "
 
 
 @pytest.fixture
+def diag_mp(monkeypatch):
+    monkeypatch.setattr(plugin, "last_diagnostics", plugin.collections.defaultdict(list))
+    return monkeypatch
+
+
+@pytest.fixture
 def workspace(tmpdir):
     """Return a workspace."""
     ws = Workspace(uris.from_fs_path(str(tmpdir)), Mock())
@@ -38,7 +44,7 @@ def test_settings():
     assert settings == {"plugins": {"pylsp_mypy": {}}}
 
 
-def test_plugin(workspace):
+def test_plugin(workspace, diag_mp):
     config = FakeConfig()
     doc = Document(DOC_URI, workspace, DOC_TYPE_ERR)
     plugin.pylsp_settings(config)
@@ -85,7 +91,7 @@ def test_parse_line_with_context(monkeypatch, word, bounds, workspace):
     assert diag["range"]["end"] == {"line": 278, "character": bounds[1]}
 
 
-def test_multiple_workspaces(tmpdir):
+def test_multiple_workspaces(tmpdir, diag_mp):
     DOC_SOURCE = """
 def foo():
     return
