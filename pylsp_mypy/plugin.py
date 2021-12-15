@@ -20,6 +20,7 @@ from typing import Optional, Dict, Any, IO, List
 import atexit
 import collections
 import warnings
+import shutil
 
 line_pattern: str = r"((?:^[a-z]:)?[^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
 
@@ -187,35 +188,45 @@ def pylsp_lint(
         args.append("--strict")
 
     if not dmypy:
-        args.extend(["--incremental", "--follow-imports", "silent"])
+        if shutil.which('mypy'):
+            args.extend(["--incremental", "--follow-imports", "silent"])
 
-        log.info("executing mypy args = %s", args)
-        completed_process = subprocess.run(
-            ["mypy", *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        report = completed_process.stdout.decode()
-        errors = completed_process.stderr.decode()
+            log.info("executing mypy args = %s", args)
+            completed_process = subprocess.run(
+                ["mypy", *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
+            report = completed_process.stdout.decode()
+            errors = completed_process.stderr.decode()
+        else:
+            report = ""
+            errors = ""
+            log.info("mypy not found")
     else:
         # If dmypy daemon is non-responsive calls to run will block.
         # Check daemon status, if non-zero daemon is dead or hung.
         # If daemon is hung, kill will reset
         # If daemon is dead/absent, kill will no-op.
         # In either case, reset to fresh state
-        completed_process = subprocess.run(["dmypy", *args], stderr=subprocess.PIPE)
-        _err = completed_process.stderr.decode()
-        _status = completed_process.returncode
-        if _status != 0:
-            log.info("restarting dmypy from status: %s message: %s", _status, _err.strip())
-            subprocess.run(["dmypy", "kill"])
+        if shutil.which('dmypy'):
+            completed_process = subprocess.run(["dmypy", *args], stderr=subprocess.PIPE)
+            _err = completed_process.stderr.decode()
+            _status = completed_process.returncode
+            if _status != 0:
+                log.info("restarting dmypy from status: %s message: %s", _status, _err.strip())
+                subprocess.run(["dmypy", "kill"])
 
-        # run to use existing daemon or restart if required
-        args = ["run", "--"] + args
-        log.info("dmypy run args = %s", args)
-        completed_process = subprocess.run(
-            ["dmypy", *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        report = completed_process.stdout.decode()
-        errors = completed_process.stderr.decode()
+            # run to use existing daemon or restart if required
+            args = ["run", "--"] + args
+            log.info("dmypy run args = %s", args)
+            completed_process = subprocess.run(
+                ["dmypy", *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
+            report = completed_process.stdout.decode()
+            errors = completed_process.stderr.decode()
+        else:
+            report = ""
+            errors = ""
+            log.info("dmypy not found")
 
     log.debug("report:\n%s", report)
     log.debug("errors:\n%s", errors)
