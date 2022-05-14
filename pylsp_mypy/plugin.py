@@ -233,9 +233,7 @@ def pylsp_lint(
         if shutil.which("dmypy"):
             # dmypy exists on path
             # -> use mypy on path
-            completed_process = subprocess.run(
-                ["dmypy", *apply_overrides(args, overrides)], stderr=subprocess.PIPE
-            )
+            completed_process = subprocess.run(["dmypy", "status"], stderr=subprocess.PIPE)
             _err = completed_process.stderr.decode()
             _status = completed_process.returncode
             if _status != 0:
