@@ -15,6 +15,7 @@ import os.path
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 from configparser import ConfigParser
 from pathlib import Path
@@ -25,6 +26,15 @@ from mypy import api as mypy_api
 from pylsp import hookimpl
 from pylsp.config.config import Config
 from pylsp.workspace import Document, Workspace
+
+
+def _prepend_sys_executable_dir_to_env_path() -> None:
+    original = os.getenv("PATH")
+    executable_dir = os.path.dirname(sys.executable)
+    os.environ["PATH"] = (executable_dir + os.pathsep + original) if original else executable_dir
+
+
+_prepend_sys_executable_dir_to_env_path()
 
 line_pattern: str = r"((?:^[a-z]:)?[^:]+):(?:(\d+):)?(?:(\d+):)? (\w+): (.*)"
 
