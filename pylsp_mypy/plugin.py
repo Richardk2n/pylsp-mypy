@@ -257,8 +257,6 @@ def get_diagnostics(
         args.append("--config-file")
         args.append(mypyConfigFile)
 
-    args.append(document.path)
-
     if settings.get("strict", False):
         args.append("--strict")
 
@@ -266,6 +264,8 @@ def get_diagnostics(
     exit_status = 0
 
     if not dmypy:
+        args.append(document.path)
+
         args.extend(["--incremental", "--follow-imports", "silent"])
         args = apply_overrides(args, overrides)
 
