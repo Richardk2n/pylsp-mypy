@@ -328,3 +328,14 @@ def foo():
     diag = diags[0]
     assert diag["message"] == DOC_ERR_MSG
     assert diag["code"] == "unreachable"
+
+
+def test_exclude_path_match_mypy_not_run(tmpdir, workspace):
+    """When exclude is set in config then mypy should not run for that file."""
+    doc = Document(DOC_URI, workspace, DOC_TYPE_ERR)
+
+    plugin.pylsp_settings(workspace._config)
+    workspace.update_config({"pylsp": {"plugins": {"pylsp_mypy": {"exclude": [doc.path]}}}})
+    diags = plugin.pylsp_lint(workspace._config, workspace, doc, is_saved=False)
+
+    assert not diags

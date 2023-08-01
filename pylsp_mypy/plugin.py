@@ -218,6 +218,15 @@ def get_diagnostics(
         document.path,
         is_saved,
     )
+    exclude = settings.get("exclude", [])
+    for pattern in exclude:
+        if re.match(pattern, document.path):
+            log.debug(
+                "Not running because %s matches exclude pattern %s",
+                document.path,
+                settings.get("exclude"),
+            )
+            return []
 
     live_mode = settings.get("live_mode", True)
     dmypy = settings.get("dmypy", False)
