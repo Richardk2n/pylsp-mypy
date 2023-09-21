@@ -169,6 +169,7 @@ def pylsp_lint(
     settings = config.plugin_settings("pylsp_mypy")
     oldSettings1 = config.plugin_settings("mypy-ls")
     oldSettings2 = config.plugin_settings("mypy_ls")
+    neovim_settings = config.plugin_settings("mypy")
     if oldSettings1 != {} or oldSettings2 != {}:
         raise NameError(
             "Your configuration uses an old namespace (mypy-ls or mypy_ls)."
@@ -178,6 +179,8 @@ def pylsp_lint(
         settings = oldSettings1
         if settings == {}:
             settings = oldSettings2
+            if settings == {}:
+                settings = neovim_settings
 
     didSettingsChange(workspace.root_path, settings)
 
