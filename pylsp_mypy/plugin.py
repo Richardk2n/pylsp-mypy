@@ -181,6 +181,18 @@ def pylsp_lint(
 
     didSettingsChange(workspace.root_path, settings)
 
+    # Running mypy with a single file (document) ignores any exclude pattern
+    # configured with mypy. We can now add our own exclude section like so:
+    # [tool.pylsp-mypy]
+    # exclude = ["tests/*"]
+    exclude = settings.get("exclude", [])
+    for pattern in exclude:
+        if re.match(pattern, document.path):
+            log.debug(
+                f"Not running because {document.path} matches " f"exclude pattern '{pattern}'"
+            )
+            return []
+
     if settings.get("report_progress", False):
         with workspace.report_progress("lint: mypy"):
             return get_diagnostics(workspace, document, settings, is_saved)
@@ -218,15 +230,6 @@ def get_diagnostics(
         document.path,
         is_saved,
     )
-    exclude = settings.get("exclude", [])
-    for pattern in exclude:
-        if re.match(pattern, document.path):
-            log.debug(
-                "Not running because %s matches exclude pattern %s",
-                document.path,
-                settings.get("exclude"),
-            )
-            return []
 
     live_mode = settings.get("live_mode", True)
     dmypy = settings.get("dmypy", False)
