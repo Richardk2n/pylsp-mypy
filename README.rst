@@ -45,6 +45,9 @@ Configuration
 ``report_progress`` (default is ``False``) report basic progress to the LSP client.
     With this option, pylsp-mypy will report when mypy is running, given your editor supports LSP progress reporting. For small files this might produce annoying flashing in your editor, especially in with ``live_mode``. For large projects, enabling this can be helpful to assure yourself whether mypy is still running.
 
+``exclude`` (default is ``[]``) A list of regular expressions which should be ignored.
+    The ``mypy`` runner wil not be invoked when a document path is matched by one of the expressions. Note that this differs from the ``exclude`` directive of a ``mypy`` config which is only used for recursively discovering files when mypy is invoked on a whole directory.
+
 This project supports the use of ``pyproject.toml`` for configuration. It is in fact the preferred way. Using that your configuration could look like this:
 
 ::
@@ -53,6 +56,7 @@ This project supports the use of ``pyproject.toml`` for configuration. It is in 
     enabled = true
     live_mode = true
     strict = true
+    exclude = ["tests/*"]
 
 A ``pyproject.toml`` does not conflict with the legacy config file given that it does not contain a ``pylsp-mypy`` section. The following explanation uses the syntax of the legacy config file. However, all these options also apply to the ``pyproject.toml`` configuration (note the lowercase bools).
 Depending on your editor, the configuration (found in a file called pylsp-mypy.cfg in your workspace or a parent directory) should be roughly like this for a standard configuration:
@@ -62,7 +66,8 @@ Depending on your editor, the configuration (found in a file called pylsp-mypy.c
     {
         "enabled": True,
         "live_mode": True,
-        "strict": False
+        "strict": False,
+        "exclude": ["tests/*"]
     }
 
 With ``dmypy`` enabled your config should look like this:
