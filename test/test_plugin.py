@@ -361,7 +361,10 @@ def test_config_exclude(tmpdir, workspace):
     doc = Document(DOC_URI, workspace, DOC_TYPE_ERR)
 
     plugin.pylsp_settings(workspace._config)
+    workspace.update_config({"pylsp": {"plugins": {"pylsp_mypy": {}}}})
+    diags = plugin.pylsp_lint(workspace._config, workspace, doc, is_saved=False)
+    assert diags[0]["message"] == TYPE_ERR_MSG
+
     workspace.update_config({"pylsp": {"plugins": {"pylsp_mypy": {"exclude": [doc.path]}}}})
     diags = plugin.pylsp_lint(workspace._config, workspace, doc, is_saved=False)
-
-    assert not diags
+    assert diags == []
