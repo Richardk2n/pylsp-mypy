@@ -187,7 +187,7 @@ def pylsp_lint(
     # exclude = ["tests/*"]
     exclude = settings.get("exclude", [])
     for pattern in exclude:
-        if re.match(pattern, document.path):
+        if re.search(pattern, document.path):
             log.debug(
                 f"Not running because {document.path} matches " f"exclude pattern '{pattern}'"
             )
