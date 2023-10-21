@@ -142,6 +142,23 @@ def didSettingsChange(workspace: str, settings: Dict[str, Any]) -> None:
         settingsCache[workspace] = settings.copy()
 
 
+def match_exclude_patterns(document_path: str, exclude_patterns: list) -> bool:
+    for pattern in exclude_patterns:
+        # This makes sure that \\ characters (and other unicode characters) are
+        # escaped first so the regex matcher will be able to parse them correctly.
+        # Especially useful for matching windows paths without any bad escape errors
+        pattern = pattern.encode("unicode-escape").decode()
+
+        try:
+            if re.search(pattern, document_path):
+                log.debug(f"{document_path} matches " f"exclude pattern '{pattern}'")
+                return True
+        except re.error as e:
+            log.error(f"pattern {pattern} is not a valid regular expression: {e}")
+
+    return False
+
+
 @hookimpl
 def pylsp_lint(
     config: Config, workspace: Workspace, document: Document, is_saved: bool
@@ -185,13 +202,13 @@ def pylsp_lint(
     # configured with mypy. We can now add our own exclude section like so:
     # [tool.pylsp-mypy]
     # exclude = ["tests/*"]
-    exclude = settings.get("exclude", [])
-    for pattern in exclude:
-        if re.search(pattern, document.path):
-            log.debug(
-                f"Not running because {document.path} matches " f"exclude pattern '{pattern}'"
-            )
-            return []
+    exclude_patterns = settings.get("exclude", [])
+
+    if match_exclude_patterns(document_path=document.path, exclude_patterns=exclude_patterns):
+        log.debug(
+            f"Not running because {document.path} matches " f"exclude patterns '{exclude_patterns}'"
+        )
+        return []
 
     if settings.get("report_progress", False):
         with workspace.report_progress("lint: mypy"):

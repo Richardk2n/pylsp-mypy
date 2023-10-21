@@ -330,7 +330,33 @@ def foo():
     assert diag["code"] == "unreachable"
 
 
-def test_exclude_path_match_mypy_not_run(tmpdir, workspace):
+@pytest.mark.parametrize(
+    "document_path,pattern,pattern_matched",
+    (
+        ("/workspace/my-file.py", "/someting-else", False),
+        ("/workspace/my-file.py", "^/workspace$", False),
+        ("/workspace/my-file.py", "/workspace", True),
+        ("/workspace/my-file.py", "^/workspace(.*)$", True),
+        # This is a broken regex (missing ')'), but should not choke
+        ("/workspace/my-file.py", "/((workspace)", False),
+        # Windows paths are tricky with all those \\ and unintended escape,
+        # characters but they should 'just' work
+        ("d:\\a\\my-file.py", "\\a", True),
+        (
+            "d:\\a\\pylsp-mypy\\pylsp-mypy\\test\\test_plugin.py",
+            "d:\\a\\pylsp-mypy\\pylsp-mypy\\test\\test_plugin.py",
+            True,
+        ),
+    ),
+)
+def test_match_exclude_patterns(document_path, pattern, pattern_matched):
+    assert (
+        plugin.match_exclude_patterns(document_path=document_path, exclude_patterns=[pattern])
+        is pattern_matched
+    )
+
+
+def test_config_exclude(tmpdir, workspace):
     """When exclude is set in config then mypy should not run for that file."""
     doc = Document(DOC_URI, workspace, DOC_TYPE_ERR)
 
