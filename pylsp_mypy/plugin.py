@@ -89,9 +89,7 @@ def parse_line(line: str, document: Optional[Document] = None) -> Optional[Dict[
         The dict with the lint data.
 
     """
-    result = line_pattern.match(line)
-    if not result:
-        result = whole_line_pattern.match(line)
+    result = line_pattern.match(line) or whole_line_pattern.match(line)
 
     if not result:
         return None
