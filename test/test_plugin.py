@@ -223,6 +223,7 @@ def test_option_overrides_dmypy(last_diagnostics_monkeypatch, workspace):
         "/tmp/fake",
         "--show-error-end",
         "--no-error-summary",
+        "--no-pretty",
         document.path,
     ]
     m.assert_called_with(expected, capture_output=True, **windows_flag, encoding="utf-8")
@@ -328,3 +329,33 @@ def foo():
     diag = diags[0]
     assert diag["message"] == DOC_ERR_MSG
     assert diag["code"] == "unreachable"
+
+
+def test_override_pretty_output(tmpdir, workspace):
+    """
+    Projects with pretty formatting configured for mypy will experience intermittent failures
+    from errors parsing the prettified output.
+
+    This test confirms that a '--no-pretty' CLI arg is passed to mypy that overrides the
+    config file's pretty option. This ensures the mypy output received by this plugin is
+    consistently formatted
+    """
+    # Create configuration file for workspace.
+    mypy_config = tmpdir.join("pyproject.toml")
+    mypy_config.write("[tool.mypy]\npretty = true")
+
+    # Initialize workspace.
+    ws = Workspace(uris.from_fs_path(str(tmpdir)), Mock())
+    ws._config = Config(ws.root_uri, {}, 0, {})
+
+    # Files with long paths will break this plugin when using pretty output. This will confirm the
+    # pretty output is being overridden
+    long_path = tmpdir.join("a_file_with_a_very_long_name_that_affects_mypy_output.py")
+    with open(long_path, "w") as fp:
+        fp.write(DOC_TYPE_ERR)
+
+    doc = Document(str(long_path), workspace)
+    plugin.pylsp_settings(workspace._config)
+    diags = plugin.pylsp_lint(workspace._config, workspace, doc, is_saved=False)
+
+    assert len(diags) == 1
