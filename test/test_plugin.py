@@ -1,5 +1,6 @@
 import collections
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -18,7 +19,10 @@ from pylsp_mypy import plugin
 DOC_URI = f"file:/{Path(__file__)}"
 DOC_TYPE_ERR = """{}.append(3)
 """
-TYPE_ERR_MSG = '"Dict[<nothing>, <nothing>]" has no attribute "append"'
+
+# Mypy 1.7 changed <nothing> into "Never", so make this a regex to be compatible
+# with multiple versions of mypy
+TYPE_ERR_MSG_REGEX = r"\"Dict\[(.+)]\" has no attribute \"append\""
 
 TEST_LINE = 'test_plugin.py:279:8:279:16: error: "Request" has no attribute "id"  [attr-defined]'
 TEST_LINE_NOTE = (
@@ -66,7 +70,7 @@ def test_plugin(workspace, last_diagnostics_monkeypatch):
 
     assert len(diags) == 1
     diag = diags[0]
-    assert diag["message"] == TYPE_ERR_MSG
+    assert re.search(TYPE_ERR_MSG_REGEX, diag["message"])
     assert diag["range"]["start"] == {"line": 0, "character": 0}
     # Running mypy in 3.7 produces wrong error ends this can be removed when 3.7 reaches EOL
     if sys.version_info < (3, 8):
@@ -365,7 +369,7 @@ def test_config_exclude(tmpdir, workspace):
     plugin.pylsp_settings(workspace._config)
     workspace.update_config({"pylsp": {"plugins": {"pylsp_mypy": {}}}})
     diags = plugin.pylsp_lint(workspace._config, workspace, doc, is_saved=False)
-    assert diags[0]["message"] == TYPE_ERR_MSG
+    assert re.search(TYPE_ERR_MSG_REGEX, diags[0]["message"])
 
     # Add the path of our document to the exclude patterns
     exclude_path = doc.path.replace(os.sep, "/")
