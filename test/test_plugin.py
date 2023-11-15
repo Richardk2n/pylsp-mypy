@@ -22,7 +22,9 @@ DOC_TYPE_ERR = """{}.append(3)
 
 # Mypy 1.7 changed <nothing> into "Never", so make this a regex to be compatible
 # with multiple versions of mypy
-TYPE_ERR_MSG_REGEX = r"\"Dict\[(.+)]\" has no attribute \"append\""
+TYPE_ERR_MSG_REGEX = (
+    r'"Dict\[(?:(?:<nothing>)|(?:Never)), (?:(?:<nothing>)|(?:Never))\]" has no attribute "append"'
+)
 
 TEST_LINE = 'test_plugin.py:279:8:279:16: error: "Request" has no attribute "id"  [attr-defined]'
 TEST_LINE_NOTE = (
@@ -70,7 +72,7 @@ def test_plugin(workspace, last_diagnostics_monkeypatch):
 
     assert len(diags) == 1
     diag = diags[0]
-    assert re.search(TYPE_ERR_MSG_REGEX, diag["message"])
+    assert re.fullmatch(TYPE_ERR_MSG_REGEX, diag["message"])
     assert diag["range"]["start"] == {"line": 0, "character": 0}
     # Running mypy in 3.7 produces wrong error ends this can be removed when 3.7 reaches EOL
     if sys.version_info < (3, 8):
@@ -345,11 +347,11 @@ def foo():
         ("/workspace/my-file.py", "/((workspace)", "/", False),
         # Windows paths are tricky with all those \\ and unintended escape,
         # characters but they should 'just' work
-        ("d:\\a\\my-file.py", "/a", "\\", True),
+        (r"d:\\a\\my-file.py", "/a", r"\\", True),
         (
-            "d:\\a\\pylsp-mypy\\pylsp-mypy\\test\\test_plugin.py",
+            r"d:\\a\\pylsp-mypy\\pylsp-mypy\\test\\test_plugin.py",
             "/a/pylsp-mypy/pylsp-mypy/test/test_plugin.py",
-            "\\",
+            r"\\",
             True,
         ),
     ),
