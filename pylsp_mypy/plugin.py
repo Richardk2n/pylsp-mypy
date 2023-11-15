@@ -37,7 +37,7 @@ line_pattern = re.compile(
     )
 )
 
-whole_line_pattern = re.compile( # certain mypy warnings do not report start-end ranges
+whole_line_pattern = re.compile(  # certain mypy warnings do not report start-end ranges
     (
         r"^(?P<file>.+):(?P<start_line>\d+): "
         r"(?P<severity>\w+): (?P<message>.+?)(?: +\[(?P<code>.+)\])?$"
@@ -106,7 +106,6 @@ def parse_line(line: str, document: Optional[Document] = None) -> Optional[Dict[
     offset = int(result.groupdict().get("start_col", 1)) - 1  # 0-based offset
     end_lineno = int(result.groupdict().get("end_line", lineno + 1)) - 1
     end_offset = int(result.groupdict().get("end_col", 1))  # end is exclusive
-
 
     severity = result["severity"]
     if severity not in ("error", "note"):
