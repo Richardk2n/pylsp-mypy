@@ -143,12 +143,10 @@ def didSettingsChange(workspace: str, settings: Dict[str, Any]) -> None:
 
 
 def match_exclude_patterns(document_path: str, exclude_patterns: list) -> bool:
-    for pattern in exclude_patterns:
-        # This makes sure that \\ characters (and other unicode characters) are
-        # escaped first so the regex matcher will be able to parse them correctly.
-        # Especially useful for matching windows paths without any bad escape errors
-        pattern = pattern.encode("unicode-escape").decode()
+    """Check if the current document path matches any of the configures exlude patterns."""
+    document_path = document_path.replace(os.sep, "/")
 
+    for pattern in exclude_patterns:
         try:
             if re.search(pattern, document_path):
                 log.debug(f"{document_path} matches " f"exclude pattern '{pattern}'")

@@ -46,7 +46,7 @@ Configuration
     With this option, pylsp-mypy will report when mypy is running, given your editor supports LSP progress reporting. For small files this might produce annoying flashing in your editor, especially in with ``live_mode``. For large projects, enabling this can be helpful to assure yourself whether mypy is still running.
 
 ``exclude`` (default is ``[]``) A list of regular expressions which should be ignored.
-    The ``mypy`` runner wil not be invoked when a document path is matched by one of the expressions. Note that this differs from the ``exclude`` directive of a ``mypy`` config which is only used for recursively discovering files when mypy is invoked on a whole directory.
+    The ``mypy`` runner wil not be invoked when a document path is matched by one of the expressions. Note that this differs from the ``exclude`` directive of a ``mypy`` config which is only used for recursively discovering files when mypy is invoked on a whole directory. For both windows or unix platforms you should use forward slashes (``/``) to indicate paths.
 
 This project supports the use of ``pyproject.toml`` for configuration. It is in fact the preferred way. Using that your configuration could look like this:
 

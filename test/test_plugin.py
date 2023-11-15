@@ -4,7 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Dict
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 from mypy import api as mypy_api
@@ -331,29 +331,31 @@ def foo():
 
 
 @pytest.mark.parametrize(
-    "document_path,pattern,pattern_matched",
+    "document_path,pattern,os_sep,pattern_matched",
     (
-        ("/workspace/my-file.py", "/someting-else", False),
-        ("/workspace/my-file.py", "^/workspace$", False),
-        ("/workspace/my-file.py", "/workspace", True),
-        ("/workspace/my-file.py", "^/workspace(.*)$", True),
+        ("/workspace/my-file.py", "/someting-else", "/", False),
+        ("/workspace/my-file.py", "^/workspace$", "/", False),
+        ("/workspace/my-file.py", "/workspace", "/", True),
+        ("/workspace/my-file.py", "^/workspace(.*)$", "/", True),
         # This is a broken regex (missing ')'), but should not choke
-        ("/workspace/my-file.py", "/((workspace)", False),
+        ("/workspace/my-file.py", "/((workspace)", "/", False),
         # Windows paths are tricky with all those \\ and unintended escape,
         # characters but they should 'just' work
-        ("d:\\a\\my-file.py", "\\a", True),
+        ("d:\\a\\my-file.py", "/a", "\\", True),
         (
             "d:\\a\\pylsp-mypy\\pylsp-mypy\\test\\test_plugin.py",
-            "d:\\a\\pylsp-mypy\\pylsp-mypy\\test\\test_plugin.py",
+            "/a/pylsp-mypy/pylsp-mypy/test/test_plugin.py",
+            "\\",
             True,
         ),
     ),
 )
-def test_match_exclude_patterns(document_path, pattern, pattern_matched):
-    assert (
-        plugin.match_exclude_patterns(document_path=document_path, exclude_patterns=[pattern])
-        is pattern_matched
-    )
+def test_match_exclude_patterns(document_path, pattern, os_sep, pattern_matched):
+    with patch("os.sep", new=os_sep):
+        assert (
+            plugin.match_exclude_patterns(document_path=document_path, exclude_patterns=[pattern])
+            is pattern_matched
+        )
 
 
 def test_config_exclude(tmpdir, workspace):
@@ -365,6 +367,8 @@ def test_config_exclude(tmpdir, workspace):
     diags = plugin.pylsp_lint(workspace._config, workspace, doc, is_saved=False)
     assert diags[0]["message"] == TYPE_ERR_MSG
 
-    workspace.update_config({"pylsp": {"plugins": {"pylsp_mypy": {"exclude": [doc.path]}}}})
+    # Add the path of our document to the exclude patterns
+    exclude_path = doc.path.replace(os.sep, "/")
+    workspace.update_config({"pylsp": {"plugins": {"pylsp_mypy": {"exclude": [exclude_path]}}}})
     diags = plugin.pylsp_lint(workspace._config, workspace, doc, is_saved=False)
     assert diags == []
