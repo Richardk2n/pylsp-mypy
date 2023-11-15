@@ -347,11 +347,11 @@ def foo():
         ("/workspace/my-file.py", "/((workspace)", "/", False),
         # Windows paths are tricky with all those \\ and unintended escape,
         # characters but they should 'just' work
-        (r"d:\\a\\my-file.py", "/a", r"\\", True),
+        ("d:\\a\\my-file.py", "/a", "\\", True),
         (
-            r"d:\\a\\pylsp-mypy\\pylsp-mypy\\test\\test_plugin.py",
+            "d:\\a\\pylsp-mypy\\pylsp-mypy\\test\\test_plugin.py",
             "/a/pylsp-mypy/pylsp-mypy/test/test_plugin.py",
-            r"\\",
+            "\\",
             True,
         ),
     ),
