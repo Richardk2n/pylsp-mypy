@@ -1,6 +1,6 @@
 python-lsp-server
 mypy >= 0.981
-tomli >= 1.1.0
+tomli >= 1.1.0 ; python_version < "3.11"
 black
 pre-commit
 rstcheck
