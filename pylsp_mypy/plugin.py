@@ -292,7 +292,10 @@ def get_diagnostics(
         args.append("--config-file")
         args.append(mypyConfigFile)
 
-    args.append(document.path)
+    if dmypy:
+        args.append(workspace.root_path)
+    else:
+        args.append(document.path)
 
     if settings.get("strict", False):
         args.append("--strict")
