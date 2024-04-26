@@ -24,6 +24,9 @@ Install into the same virtualenv as python-lsp-server itself.
 Configuration
 -------------
 
+Options
+~~~~~~~
+
 ``live_mode`` (default is True) provides type checking as you type.
     This writes to a tempfile every time a check is done. Turning off ``live_mode`` means you must save your changes for mypy diagnostics to update correctly.
 
@@ -33,8 +36,8 @@ Configuration
 ``strict`` (default is False) refers to the ``strict`` option of ``mypy``.
     This option often is too strict to be useful.
 
-``overrides`` (default is ``[True]``) specifies a list of alternate or supplemental command-line options.
-    This modifies the options passed to ``mypy`` or the mypy-specific ones passed to ``dmypy run``. When present, the special boolean member ``True`` is replaced with the command-line options that would've been passed had ``overrides`` not been specified. Later options take precedence, which allows for replacing or negating individual default options (see ``mypy.main:process_options`` and ``mypy --help | grep inverse``).
+``overrides`` (default is ``[]``) specifies a list of supplemental command-line options.
+    This modifies the options passed to ``mypy`` or the mypy-specific ones passed to ``dmypy run``. Later options take precedence, which allows for replacing or negating individual default options (see ``mypy.main:process_options`` and ``mypy --help | grep inverse``).
 
 ``dmypy_status_file`` (Default is ``.dmypy.json``) specifies which status file dmypy should use.
     This modifies the ``--status-file`` option passed to ``dmypy`` given ``dmypy`` is active.
@@ -47,6 +50,20 @@ Configuration
 
 ``exclude`` (default is ``[]``) A list of regular expressions which should be ignored.
     The ``mypy`` runner wil not be invoked when a document path is matched by one of the expressions. Note that this differs from the ``exclude`` directive of a ``mypy`` config which is only used for recursively discovering files when mypy is invoked on a whole directory. For both windows or unix platforms you should use forward slashes (``/``) to indicate paths.
+
+Overrides
+~~~~~~~~~
+
+The plugin invokes both ``mypy`` and ``dmypy`` with the following options
+
+- ``--show-error-end`` which allows us to report which characters need to be highlighted by the LSP.
+- ``--config-file`` with the resolved configuration file 
+
+For ``mypy``, the plugin additionally adds ``--incremental`` and ``--follow-imports=silent`` options. These can be overriden using the ``overrides`` configuration option.
+
+
+Configuration file
+~~~~~~~~~~~~~~~~~~
 
 This project supports the use of ``pyproject.toml`` for configuration. It is in fact the preferred way. Using that your configuration could look like this:
 
@@ -87,7 +104,7 @@ With ``overrides`` specified (for example to tell mypy to use a different python
 
     {
         "enabled": True,
-        "overrides": ["--python-executable", "/home/me/bin/python", True]
+        "overrides": ["--python-executable", "/home/me/bin/python"]
     }
 
 With ``dmypy_status_file`` your config could look like this:

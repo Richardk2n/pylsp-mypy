@@ -31,17 +31,13 @@ from pylsp.config.config import Config
 from pylsp.workspace import Document, Workspace
 
 line_pattern = re.compile(
-    (
-        r"^(?P<file>.+):(?P<start_line>\d+):(?P<start_col>\d*):(?P<end_line>\d*):(?P<end_col>\d*): "
-        r"(?P<severity>\w+): (?P<message>.+?)(?: +\[(?P<code>.+)\])?$"
-    )
+    r"^(?P<file>.+):(?P<start_line>\d+):(?P<start_col>\d*):(?P<end_line>\d*):(?P<end_col>\d*): "
+    r"(?P<severity>\w+): (?P<message>.+?)(?: +\[(?P<code>.+)\])?$"
 )
 
 whole_line_pattern = re.compile(  # certain mypy warnings do not report start-end ranges
-    (
-        r"^(?P<file>.+):(?P<start_line>\d+): "
-        r"(?P<severity>\w+): (?P<message>.+?)(?: +\[(?P<code>.+)\])?$"
-    )
+    r"^(?P<file>.+?):(?P<start_line>\d+):(?:(?P<start_col>\d+):)? "
+    r"(?P<severity>\w+): (?P<message>.+?)(?: +\[(?P<code>.+)\])?$"
 )
 
 log = logging.getLogger(__name__)
@@ -89,10 +85,12 @@ def parse_line(line: str, document: Optional[Document] = None) -> Optional[Dict[
         The dict with the lint data.
 
     """
-    result = line_pattern.match(line) or whole_line_pattern.match(line)
+    line_match = line_pattern.match(line) or whole_line_pattern.match(line)
 
-    if not result:
+    if not line_match:
         return None
+
+    result = line_match.groupdict()
 
     file_path = result["file"]
     if file_path != "<string>":  # live mode
@@ -103,9 +101,9 @@ def parse_line(line: str, document: Optional[Document] = None) -> Optional[Dict[
             return None
 
     lineno = int(result["start_line"]) - 1  # 0-based line number
-    offset = int(result.groupdict().get("start_col", 1)) - 1  # 0-based offset
-    end_lineno = int(result.groupdict().get("end_line", lineno + 1)) - 1
-    end_offset = int(result.groupdict().get("end_col", 1))  # end is exclusive
+    offset = int(result.get("start_col", 1)) - 1  # 0-based offset
+    end_lineno = int(result.get("end_line", lineno + 1)) - 1
+    end_offset = int(result.get("end_col", 1))  # end is exclusive
 
     severity = result["severity"]
     if severity not in ("error", "note"):
@@ -122,18 +120,6 @@ def parse_line(line: str, document: Optional[Document] = None) -> Optional[Dict[
         "severity": errno,
         "code": result["code"],
     }
-
-
-def apply_overrides(args: List[str], overrides: List[Any]) -> List[str]:
-    """Replace or combine default command-line options with overrides."""
-    overrides_iterator = iter(overrides)
-    if True not in overrides_iterator:
-        return overrides
-    # If True is in the list, the if above leaves the iterator at the element after True,
-    # therefore, the list below only contains the elements after the True
-    rest = list(overrides_iterator)
-    # slice of the True and the rest, add the args, add the rest
-    return overrides[: -(len(rest) + 1)] + args + rest
 
 
 def didSettingsChange(workspace: str, settings: Dict[str, Any]) -> None:
@@ -266,7 +252,7 @@ def get_diagnostics(
     if dmypy:
         dmypy_status_file = settings.get("dmypy_status_file", ".dmypy.json")
 
-    args = ["--show-error-end", "--no-error-summary"]
+    args = ["--show-error-end"]
 
     global tmpFile
     if live_mode and not is_saved:
@@ -297,12 +283,11 @@ def get_diagnostics(
     if settings.get("strict", False):
         args.append("--strict")
 
-    overrides = settings.get("overrides", [True])
+    args.extend(settings.get("overrides", []))
     exit_status = 0
 
     if not dmypy:
-        args.extend(["--incremental", "--follow-imports", "silent"])
-        args = apply_overrides(args, overrides)
+        args = ["--incremental", "--follow-imports", "silent", *args]
 
         if shutil.which("mypy"):
             # mypy exists on path
@@ -326,11 +311,12 @@ def get_diagnostics(
         # If daemon is dead/absent, kill will no-op.
         # In either case, reset to fresh state
 
+        dmypy_args = ["--status-file", dmypy_status_file]
         if shutil.which("dmypy"):
             # dmypy exists on path
             # -> use dmypy on path
             completed_process = subprocess.run(
-                ["dmypy", "--status-file", dmypy_status_file, "status"],
+                ["dmypy", *dmypy_args, "status"],
                 capture_output=True,
                 **windows_flag,
                 encoding="utf-8",
@@ -344,7 +330,7 @@ def get_diagnostics(
                     errors.strip(),
                 )
                 subprocess.run(
-                    ["dmypy", "--status-file", dmypy_status_file, "restart"],
+                    ["dmypy", *dmypy_args, "restart"],
                     capture_output=True,
                     **windows_flag,
                     encoding="utf-8",
@@ -352,19 +338,17 @@ def get_diagnostics(
         else:
             # dmypy does not exist on path, but must exist in the env pylsp-mypy is installed in
             # -> use dmypy via api
-            _, errors, exit_status = mypy_api.run_dmypy(
-                ["--status-file", dmypy_status_file, "status"]
-            )
+            _, errors, exit_status = mypy_api.run_dmypy([*dmypy_args, "status"])
             if exit_status != 0:
                 log.info(
                     "restarting dmypy from status: %s message: %s via api",
                     exit_status,
                     errors.strip(),
                 )
-                mypy_api.run_dmypy(["--status-file", dmypy_status_file, "restart"])
+                mypy_api.run_dmypy([*dmypy_args, "restart"])
 
         # run to use existing daemon or restart if required
-        args = ["--status-file", dmypy_status_file, "run", "--"] + apply_overrides(args, overrides)
+        args = [*dmypy_args, "run", "--", *args]
         if shutil.which("dmypy"):
             # dmypy exists on path
             # -> use mypy on path
