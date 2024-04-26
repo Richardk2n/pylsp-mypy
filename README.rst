@@ -24,6 +24,9 @@ Install into the same virtualenv as python-lsp-server itself.
 Configuration
 -------------
 
+Options
+~~~~~~~
+
 ``live_mode`` (default is True) provides type checking as you type.
     This writes to a tempfile every time a check is done. Turning off ``live_mode`` means you must save your changes for mypy diagnostics to update correctly.
 
@@ -47,6 +50,20 @@ Configuration
 
 ``exclude`` (default is ``[]``) A list of regular expressions which should be ignored.
     The ``mypy`` runner wil not be invoked when a document path is matched by one of the expressions. Note that this differs from the ``exclude`` directive of a ``mypy`` config which is only used for recursively discovering files when mypy is invoked on a whole directory. For both windows or unix platforms you should use forward slashes (``/``) to indicate paths.
+
+Overrides
+~~~~~~~~~
+
+The plugin invokes both ``mypy`` and ``dmypy`` with the following options
+
+- ``--show-error-end`` which allows us to report which characters need to be highlighted by the LSP.
+- ``--config-file`` with the resolved configuration file 
+
+For ``mypy``, the plugin additionally adds ``--incremental`` and ``--follow-imports=silent`` options. These can be overriden using the ``overrides`` configuration option.
+
+
+Configuration file
+~~~~~~~~~~~~~~~~~~
 
 This project supports the use of ``pyproject.toml`` for configuration. It is in fact the preferred way. Using that your configuration could look like this:
 
