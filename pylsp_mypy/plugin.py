@@ -266,7 +266,7 @@ def get_diagnostics(
     if dmypy:
         dmypy_status_file = settings.get("dmypy_status_file", ".dmypy.json")
 
-    args = ["--show-error-end", "--no-error-summary"]
+    args = ["--show-error-end", "--no-error-summary", "--no-pretty"]
 
     global tmpFile
     if live_mode and not is_saved:
