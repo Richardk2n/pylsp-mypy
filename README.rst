@@ -23,6 +23,7 @@ Install into the same virtualenv as python-lsp-server itself.
 
 Configuration
 -------------
+``pylsp-mypy`` supports the use of ``pyproject.toml`` for configuration. It can also be configuered using configs provided to the LSP server. The configuration keys are listed in the following.
 
 .. list-table:: Configuration
    :header-rows: 1
@@ -40,12 +41,12 @@ Configuration
    * - ``dmypy``
      - ``pylsp.plugins.pylsp_mypy.dmypy``
      - ``boolean``
-     - **Executes via ``dmypy run`` rather than ``mypy``**. This uses the ``dmypy`` daemon and may dramatically improve the responsiveness of the ``pylsp`` server, however this currently does not work in ``live_mode``. Enabling this disables ``live_mode``, even for conflicting configs.
+     - **Executes via** ``dmypy run`` **rather than** ``mypy``. This uses the ``dmypy`` daemon and may dramatically improve the responsiveness of the ``pylsp`` server, however this currently does not work in ``live_mode``. Enabling this disables ``live_mode``, even for conflicting configs.
      - false
    * - ``strict``
      - ``pylsp.plugins.pylsp_mypy.strict``
      - ``boolean``
-     - **Refers to the ``strict`` option of ``mypy``**. This option often is too strict to be useful.
+     - **Refers to the** ``strict`` **option of** ``mypy``. This option often is too strict to be useful.
      - false
    * - ``overrides``
      - ``pylsp.plugins.pylsp_mypy.overrides``
@@ -73,7 +74,7 @@ Configuration
      - **A list of regular expressions which should be ignored**. The ``mypy`` runner wil not be invoked when a document path is matched by one of the expressions. Note that this differs from the ``exclude`` directive of a ``mypy`` config which is only used for recursively discovering files when mypy is invoked on a whole directory. For both windows or unix platforms you should use forward slashes (``/``) to indicate paths.
      - ``[]``
 
-This project supports the use of ``pyproject.toml`` for configuration. It is in fact the preferred way. Using that your configuration could look like this:
+Using a ``pyproject.toml`` for configuration, which is in fact the preferred way, your configuration could look like this:
 
 ::
 
@@ -83,7 +84,7 @@ This project supports the use of ``pyproject.toml`` for configuration. It is in 
     strict = true
     exclude = ["tests/*"]
 
-A ``pyproject.toml`` does not conflict with the legacy config file given that it does not contain a ``pylsp-mypy`` section. The following explanation uses the syntax of the legacy config file. However, all these options also apply to the ``pyproject.toml`` configuration (note the lowercase bools).
+A ``pyproject.toml`` does not conflict with the legacy config file (deprecated) given that it does not contain a ``pylsp-mypy`` section. The following explanation uses the syntax of the legacy config file (deprecated). However, all these options also apply to the ``pyproject.toml`` configuration (note the lowercase bools).
 Depending on your editor, the configuration (found in a file called pylsp-mypy.cfg in your workspace or a parent directory) should be roughly like this for a standard configuration:
 
 ::
