@@ -73,6 +73,17 @@ Configuration
      - ``array`` of ``string`` items
      - **A list of regular expressions which should be ignored**. The ``mypy`` runner wil not be invoked when a document path is matched by one of the expressions. Note that this differs from the ``exclude`` directive of a ``mypy`` config which is only used for recursively discovering files when mypy is invoked on a whole directory. For both windows or unix platforms you should use forward slashes (``/``) to indicate paths.
      - ``[]``
+   * - ``mypy_command``
+     - ``pylsp.plugins.pylsp_mypy.mypy_command``
+     - ``array`` of ``string`` items
+     - **The command to run mypy**. This is useful if you want to run mypy in a specific virtual environment.
+     - ``[]``
+   * - ``dmypy_command``
+     - ``pylsp.plugins.pylsp_mypy.dmypy_command``
+     - ``array`` of ``string`` items
+     - **The command to run dmypy**. This is useful if you want to run dmypy in a specific virtual environment.
+     - ``[]``
+
 
 Using a ``pyproject.toml`` for configuration, which is in fact the preferred way, your configuration could look like this:
 
@@ -144,6 +155,26 @@ With ``report_progress`` your config could look like this:
     {
         "enabled": True,
         "report_progress": True
+    }
+
+With ``mypy_command`` your config could look like this:
+
+::
+
+    {
+        "enabled": True,
+        "mypy_command": ["poetry", "run", "mypy"]
+    }
+
+With ``dmypy_command`` your config could look like this:
+
+::
+
+    {
+        "enabled": True,
+        "live_mode": False,
+        "dmypy": True,
+        "dmypy_command": ["/path/to/venv/bin/dmypy"]
     }
 
 Developing
