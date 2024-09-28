@@ -315,7 +315,7 @@ def get_diagnostics(
     exit_status = 0
 
     if not dmypy:
-        args.extend(["--incremental", "--follow-imports", "silent"])
+        args.extend(["--incremental", "--follow-imports", settings.get("follow-imports", "silent")])
         args = apply_overrides(args, overrides)
 
         mypy_cmd = get_cmd(settings, "mypy")

@@ -73,6 +73,11 @@ Configuration
      - ``array`` of ``string`` items
      - **A list of regular expressions which should be ignored**. The ``mypy`` runner wil not be invoked when a document path is matched by one of the expressions. Note that this differs from the ``exclude`` directive of a ``mypy`` config which is only used for recursively discovering files when mypy is invoked on a whole directory. For both windows or unix platforms you should use forward slashes (``/``) to indicate paths.
      - ``[]``
+   * - ``follow-imports``
+     - ``pylsp.plugins.pylsp_mypy.follow-imports``
+     - ``normal``, ``silent``, ``skip`` or ``error``
+     - ``mypy`` **parameter** ``follow-imports``. In ``mypy`` this is ``normal`` by default. We set it ``silent``, to sort out unwanted results. This can cause cash invalidation if you also run ``mypy`` in other ways. Setting this to ``normal`` avoids this at the cost of a small performance penalty.
+     - ``silent``
    * - ``mypy_command``
      - ``pylsp.plugins.pylsp_mypy.mypy_command``
      - ``array`` of ``string`` items
@@ -83,7 +88,6 @@ Configuration
      - ``array`` of ``string`` items
      - **The command to run dmypy**. This is useful if you want to run dmypy in a specific virtual environment.
      - ``[]``
-
 
 Using a ``pyproject.toml`` for configuration, which is in fact the preferred way, your configuration could look like this:
 
