@@ -166,7 +166,11 @@ def match_exclude_patterns(document_path: str, exclude_patterns: list) -> bool:
 
 
 def get_cmd(settings: Dict[str, Any], cmd: str) -> List[str]:
-    """Get the command to run from settings, falling back to searching the PATH."""
+    """Get the command to run from settings, falling back to searching the PATH.
+
+    If the command is not found in the settings and is not available on the PATH, an
+    empty list is returned.
+    """
     command_key = f"{cmd}_command"
     command: List[str] = settings.get(command_key, [])
 
