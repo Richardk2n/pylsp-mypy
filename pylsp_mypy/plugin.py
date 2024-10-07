@@ -165,7 +165,7 @@ def match_exclude_patterns(document_path: str, exclude_patterns: list) -> bool:
     return False
 
 
-@hookimpl
+@hookimpl(trylast=True)
 def pylsp_lint(
     config: Config, workspace: Workspace, document: Document, is_saved: bool
 ) -> List[Dict[str, Any]]:
