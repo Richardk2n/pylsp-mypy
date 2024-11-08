@@ -76,7 +76,7 @@ Configuration
    * - ``follow-imports``
      - ``pylsp.plugins.pylsp_mypy.follow-imports``
      - ``normal``, ``silent``, ``skip`` or ``error``
-     - ``mypy`` **parameter** ``follow-imports``. In ``mypy`` this is ``normal`` by default. We set it ``silent``, to sort out unwanted results. This can cause cash invalidation if you also run ``mypy`` in other ways. Setting this to ``normal`` avoids this at the cost of a small performance penalty.
+     - ``mypy`` **parameter** ``follow-imports``. In ``mypy`` this is ``normal`` by default. We set it ``silent``, to sort out unwanted results. This can cause cache invalidation if you also run ``mypy`` in other ways. Setting this to ``normal`` avoids this at the cost of a small performance penalty.
      - ``silent``
 
 Using a ``pyproject.toml`` for configuration, which is in fact the preferred way, your configuration could look like this:
