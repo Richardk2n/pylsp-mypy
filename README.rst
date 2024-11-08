@@ -90,7 +90,7 @@ Using a ``pyproject.toml`` for configuration, which is in fact the preferred way
     exclude = ["tests/*"]
 
 A ``pyproject.toml`` does not conflict with the legacy config file (deprecated) given that it does not contain a ``pylsp-mypy`` section. The following explanation uses the syntax of the legacy config file (deprecated). However, all these options also apply to the ``pyproject.toml`` configuration (note the lowercase bools).
-Depending on your editor, the configuration (found in a file called pylsp-mypy.cfg in your workspace or a parent directory) should be roughly like this for a standard configuration:
+Depending on your editor, the configuration (found in a file called ``pylsp-mypy.cfg`` in your workspace or a parent directory) should be roughly like this for a standard configuration:
 
 ::
 
