@@ -301,15 +301,18 @@ def get_diagnostics(
     exit_status = 0
 
     if not dmypy:
+        executable = settings.get("executable", None)
+        if executable is None:
+            executable = shutil.which("mypy")
         args.extend(["--incremental", "--follow-imports", settings.get("follow-imports", "silent")])
         args = apply_overrides(args, overrides)
 
-        if shutil.which("mypy"):
-            # mypy exists on path
-            # -> use mypy on path
+        if executable is not None:
+            # mypy exists on the configured location or path
+            # -> use mypy there
             log.info("executing mypy args = %s on path", args)
             completed_process = subprocess.run(
-                ["mypy", *args], capture_output=True, **windows_flag, encoding="utf-8"
+                [executable, *args], capture_output=True, **windows_flag, encoding="utf-8"
             )
             report = completed_process.stdout
             errors = completed_process.stderr
