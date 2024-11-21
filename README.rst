@@ -33,6 +33,10 @@ Configuration
      - Type
      - Description
      - Default
+   * - ``executable``
+     - ``pylsp.plugins.pylsp_mypy.executable``
+     - ``string``
+     - **Set a custom mypy executable location**. If not set, it will find from the current shell's ``PATH``.
    * - ``live_mode``
      - ``pylsp.plugins.pylsp_mypy.live_mode``
      - ``boolean``
