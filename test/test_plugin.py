@@ -83,7 +83,7 @@ def test_plugin(workspace, last_diagnostics_monkeypatch):
     assert diag["code"] == "attr-defined"
 
 
-@pytest.mark.parametrize("doc_source", ["a = 1\nb\n", "a = 1\r\nb\r\n"])
+@pytest.mark.parametrize("doc_source", ["a = 1\nb\n", "a = 1\r\nb\r\n", "a = 1\rb\r"])
 def test_handling_of_line_endings(workspace, last_diagnostics_monkeypatch, doc_source):
     # setup
     doc = Document(DOC_URI, workspace, doc_source)
