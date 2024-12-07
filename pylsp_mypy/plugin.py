@@ -295,9 +295,9 @@ def get_diagnostics(
     global tmpFile
     if live_mode and not is_saved:
         if tmpFile:
-            tmpFile = open(tmpFile.name, "w", encoding="utf-8")
+            tmpFile = open(tmpFile.name, "w", encoding="utf-8", newline="")
         else:
-            tmpFile = tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8")
+            tmpFile = tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8", newline="")
         log.info("live_mode tmpFile = %s", tmpFile.name)
         tmpFile.write(document.source)
         tmpFile.close()
