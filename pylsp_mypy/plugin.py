@@ -604,6 +604,8 @@ def pylsp_code_actions(
     for diagnostic in context.get("diagnostics", []):
         if diagnostic["source"] != "mypy":
             continue
+        if diagnostic.get("code") is None:
+            continue
         code = diagnostic["code"]
         lineNumberEnd = diagnostic["range"]["end"]["line"]
         line = document.lines[lineNumberEnd]
