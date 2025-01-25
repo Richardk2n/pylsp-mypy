@@ -112,7 +112,7 @@ def parse_line(line: str, document: Optional[Document] = None) -> Optional[Dict[
         log.warning(f"invalid error severity '{severity}'")
     errno = 1 if severity == "error" else 3
 
-    return {
+    diag = {
         "source": "mypy",
         "range": {
             "start": {"line": lineno, "character": offset},
@@ -120,8 +120,12 @@ def parse_line(line: str, document: Optional[Document] = None) -> Optional[Dict[
         },
         "message": result["message"],
         "severity": errno,
-        "code": result["code"],
     }
+
+    if result["code"]:
+        diag["code"] = result["code"]
+
+    return diag
 
 
 def apply_overrides(args: List[str], overrides: List[Any]) -> List[str]:
@@ -604,7 +608,7 @@ def pylsp_code_actions(
     for diagnostic in context.get("diagnostics", []):
         if diagnostic["source"] != "mypy":
             continue
-        if diagnostic.get("code") is None:
+        if "code" not in diagnostic:
             continue
         code = diagnostic["code"]
         lineNumberEnd = diagnostic["range"]["end"]["line"]
