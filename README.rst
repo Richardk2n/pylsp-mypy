@@ -90,6 +90,11 @@ Configuration
      - ``array`` of ``string`` items
      - **The command to run dmypy**. This is useful if you want to run dmypy in a specific virtual environment. Requires env variable ``PYLSP_MYPY_ALLOW_DANGEROUS_CODE_EXECUTION`` to be set.
      - ``[]``
+   * - ``dmypy_project_wide``
+     - ``pylsp.plugins.pylsp_mypy.dmypy_project_wide``
+     - ``boolean``
+     - **Use dmypy in project**. With this option set to false (default) you're telling the daemon to only check specific file(s) given by PYLSP, rather than checking your entire project. The daemon is still watching for all file changes, but you've limited the scope of that particular check.
+     - false
 
 Both ``mypy_command`` and ``dmypy_command`` could be used by a malicious repo to execute arbitrary code by looking at its source with this plugin active.
 Still users want this feature. For security reasons this is disabled by default. If you really want it and accept the risks set the environment variable ``PYLSP_MYPY_ALLOW_DANGEROUS_CODE_EXECUTION`` in order to activate it.

@@ -320,7 +320,6 @@ def get_diagnostics(
         args.append("--config-file")
         args.append(mypyConfigFile)
 
-    args.append(document.path)
 
     if settings.get("strict", False):
         args.append("--strict")
@@ -331,6 +330,7 @@ def get_diagnostics(
     if not dmypy:
         args.extend(["--incremental", "--follow-imports", settings.get("follow-imports", "silent")])
         args = apply_overrides(args, overrides)
+        args.append(document.path)
 
         mypy_command: List[str] = get_cmd(settings, "mypy")
 
@@ -358,6 +358,9 @@ def get_diagnostics(
         # In either case, reset to fresh state
 
         dmypy_command: List[str] = get_cmd(settings, "dmypy")
+
+        if not settings.get("dmypy_project_wide", False):
+            args.append(document.path)
 
         if dmypy_command:
             # dmypy exists on PATH or was provided by settings
